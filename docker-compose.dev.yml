@@ -1,0 +1,22 @@
+services:
+  webserver:
+    userns_mode: "keep-id:uid=1000,gid=1000"
+    restart: no
+    build:
+      context: ./src
+      dockerfile: ./Dockerfile
+      target: development
+    volumes:
+      - runner-home:/home/runner
+      - type: bind
+        source: ./src
+        target: /home/runner/src
+    ports:
+      - "8080:5000"
+
+volumes:
+  runner-home:
+
+x-podman:
+  in_pod: false
+

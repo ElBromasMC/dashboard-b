@@ -1,0 +1,9 @@
+services:
+  webserver:
+    expose:
+      - "5000"
+    environment:
+      BANBIF_DASHBOARD_SECRET: "${BANBIF_DASHBOARD_SECRET}"
+      BANBIF_ADMIN_CODE: "${BANBIF_ADMIN_CODE}"
+      GUNICORN_WORKERS: "${GUNICORN_WORKERS:-4}"
+
