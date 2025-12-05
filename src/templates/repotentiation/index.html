@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Repotenciaci&oacute;n - BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <h1 class="page-title text-brand mb-1">Historial de Repotenciaci&oacute;n</h1>
+        <p class="text-muted mb-0">Registro de cambios de RAM y disco en equipos del proyecto.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if current_user and current_user['role'] == 'admin' %}
+        <a href="{{ url_for('repotentiation.create') }}" class="btn btn-primary">Registrar repotenciaci&oacute;n</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-primary">{{ summary.total }}</div>
+                <div class="small text-muted">Total repotenciaciones</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-success">{{ summary.ram_agregada_gb }} GB</div>
+                <div class="small text-muted">RAM agregada</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-info">{{ summary.ssd_instalados }}</div>
+                <div class="small text-muted">SSD instalados</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-danger">{{ summary.discos_destruidos }}</div>
+                <div class="small text-muted">Discos destruidos</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- B&uacute;squeda por serial -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="serial" class="form-label">Buscar por serial (equipo o componente)</label>
+                <input type="text" class="form-control" id="serial" name="serial"
+                       value="{{ serial_filter or '' }}" placeholder="Ingresa el serial...">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+            {% if serial_filter %}
+            <div class="col-md-2">
+                <a href="{{ url_for('repotentiation.index') }}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Lista de repotenciaciones -->
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Equipo</th>
+                        <th>Usuario</th>
+                        <th>RAM Antes</th>
+                        <th>RAM Despu&eacute;s</th>
+                        <th>Disco Antes</th>
+                        <th>Disco Despu&eacute;s</th>
+                        <th>T&eacute;cnico</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record['fecha_repotenciacion'][:10] if record['fecha_repotenciacion'] else '-' }}</td>
+                            <td>
+                                <code>{{ record['equipo_serial'] }}</code>
+                                {% if record['equipo_hostname'] %}
+                                <br><small class="text-muted">{{ record['equipo_hostname'] }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ record['nombre_completo'] or '-' }}</td>
+                            <td>
+                                {% if record['ram_antes_gb'] %}
+                                {{ record['ram_antes_gb'] }} GB
+                                <br><small class="text-muted">{{ record['ram_antes_tipo'] or '' }}</small>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>
+                                {% if record['ram_despues_gb'] %}
+                                <span class="text-success">{{ record['ram_despues_gb'] }} GB</span>
+                                <br><small class="text-muted">{{ record['ram_despues_tipo'] or '' }}</small>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>
+                                {% if record['disco_antes_capacidad_gb'] %}
+                                {{ record['disco_antes_capacidad_gb'] }} GB
+                                <br><small class="text-muted">{{ record['disco_antes_tipo'] or 'HDD' }}</small>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>
+                                {% if record['disco_despues_capacidad_gb'] %}
+                                <span class="text-success">{{ record['disco_despues_capacidad_gb'] }} GB</span>
+                                <br><small class="text-muted">{{ record['disco_despues_tipo'] or 'SSD' }}</small>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>{{ record['tecnico'] or '-' }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    {% if current_user and current_user['role'] == 'admin' %}
+                                    <a href="{{ url_for('repotentiation.edit', id=record['id']) }}"
+                                       class="btn btn-outline-primary">Editar</a>
+                                    <form action="{{ url_for('repotentiation.delete', id=record['id']) }}"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('&iquest;Eliminar este registro?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                No hay registros de repotenciaci&oacute;n
+                                {% if serial_filter %}para este serial{% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

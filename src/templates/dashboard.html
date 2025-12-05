@@ -35,8 +35,8 @@
         </div>
         {% if current_user and current_user['role'] == 'admin' %}
         <div class="d-flex gap-2 admin-actions">
-            <a class="btn btn-outline-primary" href="{{ url_for('upload') }}">Actualizar datos</a>
-            <a class="btn btn-primary" href="{{ url_for('download_template') }}">Plantilla CSV</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('admin.upload') }}">Actualizar datos</a>
+            <a class="btn btn-primary" href="{{ url_for('admin.download_template') }}">Plantilla CSV</a>
         </div>
         {% endif %}
     </div>
@@ -58,9 +58,9 @@
                 </select>
             </div>
             <div class="col-xl-2 col-md-4">
-                <label for="filter-categoria_trab" class="form-label">Categor&iacute;a</label>
-                <select id="filter-categoria_trab" class="form-select" data-filter="categoria_trab">
-                    <option value="">Todas</option>
+                <label for="filter-fase" class="form-label">Fase</label>
+                <select id="filter-fase" class="form-select">
+                    <option value="">Todas las fases</option>
                 </select>
             </div>
             <div class="col-xl-2 col-md-4">
@@ -73,6 +73,49 @@
             </div>
             <div class="col-xl-2 col-md-4 text-md-end">
                 <button id="filters-reset" type="button" class="btn btn-outline-secondary w-100 w-md-auto">Limpiar filtros</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen por Fase -->
+<div class="row g-3 mb-4" id="fase-cards">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 fase-card" data-fase="FASE_1" style="cursor: pointer; border-left: 4px solid #0d6efd !important;">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1 text-primary">Fase 1 - Upgrade SO</h6>
+                        <small class="text-muted">Solo upgrade Windows 11</small>
+                    </div>
+                    <div class="h3 mb-0 text-primary" id="fase-1-count">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 fase-card" data-fase="FASE_2" style="cursor: pointer; border-left: 4px solid #198754 !important;">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1 text-success">Fase 2 - Repotenciaci&oacute;n</h6>
+                        <small class="text-muted">Cambio SSD y RAM</small>
+                    </div>
+                    <div class="h3 mb-0 text-success" id="fase-2-count">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 fase-card" data-fase="FASE_3" style="cursor: pointer; border-left: 4px solid #6f42c1 !important;">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1" style="color: #6f42c1;">Fase 3 - Equipo nuevo</h6>
+                        <small class="text-muted">Reemplazo de equipo</small>
+                    </div>
+                    <div class="h3 mb-0" style="color: #6f42c1;" id="fase-3-count">0</div>
+                </div>
             </div>
         </div>
     </div>
@@ -172,7 +215,7 @@
                                 <th>Hostname</th>
                                 <th>Ubicaci&oacute;n</th>
                                 <th>Sede</th>
-                                <th>Categor&iacute;a</th>
+                                <th>Fase</th>
                                 <th>Estado</th>
                                 <th>Fecha estado</th>
                                 <th>Notas</th>

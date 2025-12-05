@@ -16,24 +16,25 @@ function timelineColor(index) {
     const hue = (index * 37) % 360;
     return `hsl(${hue}, 65%, 55%)`;
 }
-const selectFilters = ['ubicacion', 'nom_sede', 'categoria_trab'];
+const selectFilters = ['ubicacion', 'nom_sede'];
 const estadoFilters = ['estado'];
 const dateFilters = ['fecha_inicio', 'fecha_fin'];
 let currentFilters = {
     ubicacion: '',
     nom_sede: '',
-    categoria_trab: '',
     estado: '',
     fecha_inicio: '',
     fecha_fin: '',
     nombre: '',
-    hostname: ''
+    hostname: '',
+    fase: ''
 };
 let nombreDebounce = null;
 let hostnameDebounce = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     setupFilters();
+    setupFaseFilters();
     fetchSummary();
 });
 
@@ -137,15 +138,59 @@ function setupFilters() {
             currentFilters.nombre = '';
             if (hostnameInput) hostnameInput.value = '';
             currentFilters.hostname = '';
+            // Reset fase filter
+            currentFilters.fase = '';
+            const faseSelect = document.getElementById('filter-fase');
+            if (faseSelect) faseSelect.value = '';
+            document.querySelectorAll('.fase-card').forEach(card => card.classList.remove('active'));
             fetchSummary();
         });
     }
 }
 
+function setupFaseFilters() {
+    // Filtro por selector de fase
+    const faseSelect = document.getElementById('filter-fase');
+    if (faseSelect) {
+        faseSelect.addEventListener('change', () => {
+            currentFilters.fase = faseSelect.value || '';
+            // Actualizar visual de tarjetas
+            document.querySelectorAll('.fase-card').forEach(card => {
+                if (card.dataset.fase === currentFilters.fase) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+            fetchSummary();
+        });
+    }
+
+    // Click en tarjetas de fase
+    document.querySelectorAll('.fase-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const fase = card.dataset.fase;
+            if (currentFilters.fase === fase) {
+                // Deseleccionar
+                currentFilters.fase = '';
+                card.classList.remove('active');
+                if (faseSelect) faseSelect.value = '';
+            } else {
+                // Seleccionar
+                currentFilters.fase = fase;
+                document.querySelectorAll('.fase-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                if (faseSelect) faseSelect.value = fase;
+            }
+            fetchSummary();
+        });
+    });
+}
+
 async function fetchSummary() {
     try {
         const params = new URLSearchParams();
-        [...selectFilters, ...estadoFilters, ...dateFilters, 'nombre', 'hostname'].forEach((field) => {
+        [...selectFilters, ...estadoFilters, ...dateFilters, 'nombre', 'hostname', 'fase'].forEach((field) => {
             const value = currentFilters[field];
             if (value) params.append(field, value);
         });
@@ -160,6 +205,8 @@ async function fetchSummary() {
         renderNameFilter(data.name_filter || '');
         renderHostnameFilter(data.hostname_filter || '');
         renderEstadoFilter(data.estado_filter || '', data.estado_options || []);
+        renderFaseFilter(data.fase_filter || '', data.fase_options || {});
+        renderFaseCounts(data.fase_counts || {});
         renderMetrics(data);
         renderCharts(data);
         renderSchedule(data.schedule, data.schedule_brands || {});
@@ -232,6 +279,35 @@ function renderHostnameFilter(value) {
         hostnameInput.value = value || '';
         currentFilters.hostname = hostnameInput.value.trim();
     }
+}
+
+function renderFaseFilter(selected, options) {
+    const faseSelect = document.getElementById('filter-fase');
+    if (!faseSelect) return;
+
+    const opts = ['<option value="">Todas las fases</option>'];
+    Object.entries(options || {}).forEach(([key, data]) => {
+        const isSelected = selected && selected === key;
+        opts.push(`<option value="${key}" ${isSelected ? 'selected' : ''}>${data.nombre}</option>`);
+    });
+    faseSelect.innerHTML = opts.join('');
+    faseSelect.value = selected || '';
+    currentFilters.fase = faseSelect.value || '';
+
+    // Actualizar visual de tarjetas
+    document.querySelectorAll('.fase-card').forEach(card => {
+        if (card.dataset.fase === selected) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+}
+
+function renderFaseCounts(counts) {
+    document.getElementById('fase-1-count').textContent = counts['FASE_1'] || 0;
+    document.getElementById('fase-2-count').textContent = counts['FASE_2'] || 0;
+    document.getElementById('fase-3-count').textContent = counts['FASE_3'] || 0;
 }
 
 function renderMetrics(data) {
@@ -503,13 +579,14 @@ function renderTable(rows) {
 
     rows.forEach((row) => {
         const tr = document.createElement('tr');
+        const fase = getFaseFromCategoria(row.categoria_trab);
         tr.innerHTML = `
             <td>${escapeHtml(row.record_id) || '-'}</td>
             <td>${escapeHtml(row.nombre_completo) || '-'}</td>
             <td>${escapeHtml(row.hostname) || '-'}</td>
             <td>${escapeHtml(row.ubicacion) || '-'}</td>
             <td>${escapeHtml(row.nom_sede) || '-'}</td>
-            <td>${escapeHtml(row.categoria_trab) || '-'}</td>
+            <td>${fase}</td>
             <td>${escapeHtml(row.estado) || '-'}</td>
             <td>${formatDateLabel(row.fecha_estado) || '-'}</td>
             <td>${escapeHtml(row.notas) || '-'}</td>
@@ -527,6 +604,24 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function getFaseFromCategoria(categoria) {
+    if (!categoria) return '-';
+    const cat = categoria.toUpperCase();
+    if (cat.includes('UPGRADE') || cat.includes('WIN11')) {
+        if (cat.includes('REPOTENCIA')) {
+            return '<span class="badge bg-success">Fase 2</span>';
+        }
+        return '<span class="badge bg-primary">Fase 1</span>';
+    }
+    if (cat.includes('REPOTENCIA')) {
+        return '<span class="badge bg-success">Fase 2</span>';
+    }
+    if (cat.includes('EQUIPO NUEVO') || cat.includes('REEMPLAZO')) {
+        return '<span class="badge" style="background-color: #6f42c1;">Fase 3</span>';
+    }
+    return '<span class="badge bg-secondary">-</span>';
 }
 
 function parseIsoDateParts(value) {

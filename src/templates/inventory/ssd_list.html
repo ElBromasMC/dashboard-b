@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Discos SSD - Inventario BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('inventory.index') }}">Inventario</a></li>
+                <li class="breadcrumb-item active">Discos SSD</li>
+            </ol>
+        </nav>
+        <h1 class="page-title text-brand mb-0">Discos SSD</h1>
+    </div>
+    <div class="d-flex gap-2">
+        {% if current_user and current_user['role'] == 'admin' %}
+        <a href="{{ url_for('inventory.ssd_new') }}" class="btn btn-primary">Agregar SSD</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Resumen por estado -->
+<div class="row g-3 mb-4">
+    {% for key, label in status_options.items() %}
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('inventory.ssd_list', estado=key) }}" class="text-decoration-none">
+            <div class="card shadow-sm border-0 {{ 'border-primary border-2' if current_filter == key else '' }}">
+                <div class="card-body text-center py-3">
+                    <div class="h4 mb-1" style="color: {{ status_colors[key] }};">
+                        {{ summary.por_estado.get(key, {}).get('count', 0) }}
+                    </div>
+                    <div class="small text-muted">{{ label }}</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">Total: <strong>{{ summary.total }}</strong> unidades</span>
+                <span class="text-muted ms-3">Capacidad total: <strong>{{ summary.total_gb }} GB</strong></span>
+            </div>
+            {% if current_filter %}
+            <a href="{{ url_for('inventory.ssd_list') }}" class="btn btn-sm btn-outline-secondary">Limpiar filtro</a>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Serial</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Capacidad</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Equipo asignado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if ssds %}
+                        {% for ssd in ssds %}
+                        <tr>
+                            <td><code>{{ ssd['serial_num'] }}</code></td>
+                            <td>{{ ssd['marca'] or '-' }}</td>
+                            <td>{{ ssd['modelo'] or '-' }}</td>
+                            <td>{{ ssd['capacidad_gb'] }} GB</td>
+                            <td>{{ ssd['tipo'] or '-' }}</td>
+                            <td>
+                                <span class="badge" style="background-color: {{ status_colors.get(ssd['estado'], '#6c757d') }}; {{ 'color: #000;' if ssd['estado'] == 'POR_ASIGNAR' else '' }}">
+                                    {{ status_options.get(ssd['estado'], ssd['estado']) }}
+                                </span>
+                            </td>
+                            <td>{{ ssd['equipo_serial'] or '-' }}</td>
+                            <td>
+                                {% if current_user and current_user['role'] == 'admin' %}
+                                <a href="{{ url_for('inventory.ssd_edit', id=ssd['id']) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No hay discos SSD registrados
+                                {% if current_filter %}con el estado seleccionado{% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -14,7 +14,7 @@
 <body>
     <nav class="navbar navbar-expand-lg main-navbar shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard.index') }}">
                 <span class="brand-mark me-2"></span>
                 <span>Upgrade Win11 BanBif</span>
             </a>
@@ -25,25 +25,37 @@
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
                     {% if current_user %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('inventory.index') }}">Inventario</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('conformity.index') }}">Actas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('repotentiation.index') }}">Repotenciaci&oacute;n</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('destruction.index') }}">Destrucci&oacute;n</a>
                     </li>
                     {% if current_user['role'] == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('upload') }}">Cargar avances</a>
+                        <a class="nav-link" href="{{ url_for('admin.upload') }}">Cargar avances</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_new_user') }}">Nuevo usuario</a>
+                        <a class="nav-link" href="{{ url_for('admin.new_user') }}">Nuevo usuario</a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
                         <span class="badge rounded-pill bg-light text-primary fw-semibold">{{ current_user['role']|title }}</span>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-light" href="{{ url_for('logout') }}">Salir</a>
+                        <a class="btn btn-outline-light" href="{{ url_for('auth.logout') }}">Salir</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="btn btn-outline-light" href="{{ url_for('login') }}">Ingresar</a>
+                        <a class="btn btn-outline-light" href="{{ url_for('auth.login') }}">Ingresar</a>
                     </li>
                     {% endif %}
                 </ul>

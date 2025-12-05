@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Subir Acta de Conformidad - BanBif{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('conformity.index') }}">Actas de Conformidad</a></li>
+                <li class="breadcrumb-item active">Subir acta</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4 text-brand">Subir Acta de Conformidad</h1>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="equipo_serial" class="form-label">Equipo *</label>
+                            <select class="form-select" id="equipo_serial" name="equipo_serial" required>
+                                <option value="">Seleccionar equipo...</option>
+                                {% for equipo in equipos %}
+                                <option value="{{ equipo['serial_num'] }}">
+                                    {{ equipo['hostname'] or equipo['serial_num'] }}
+                                    {% if equipo['nombre_completo'] %} - {{ equipo['nombre_completo'] }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Selecciona el equipo al que corresponde el acta.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="archivo" class="form-label">Archivo *</label>
+                            <input type="file" class="form-control" id="archivo" name="archivo"
+                                   accept=".pdf,.msg" required>
+                            <div class="form-text">
+                                Formatos permitidos: <strong>PDF</strong> y <strong>MSG</strong> (correo Outlook).
+                                Tama&ntilde;o m&aacute;ximo: 50 MB.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="notas" class="form-label">Notas</label>
+                            <textarea class="form-control" id="notas" name="notas" rows="2"
+                                      placeholder="Observaciones adicionales..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Subir acta</button>
+                        <a href="{{ url_for('conformity.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted">Informaci&oacute;n</h2>
+                <ul class="mb-0">
+                    <li>Las actas de conformidad son documentos que certifican la aceptaci&oacute;n del usuario sobre el trabajo realizado en su equipo.</li>
+                    <li>Los archivos <strong>PDF</strong> se pueden visualizar directamente en el navegador.</li>
+                    <li>Los archivos <strong>MSG</strong> (correos de Outlook) se descargan para abrirlos con un cliente de correo.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

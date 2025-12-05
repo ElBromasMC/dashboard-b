@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Actas de {{ equipo['hostname'] if equipo else serial }} - BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('conformity.index') }}">Actas de Conformidad</a></li>
+            <li class="breadcrumb-item active">{{ equipo['hostname'] if equipo else serial }}</li>
+        </ol>
+    </nav>
+    <h1 class="page-title text-brand mb-1">
+        Actas del equipo {{ equipo['hostname'] if equipo else serial }}
+    </h1>
+    {% if equipo %}
+    <p class="text-muted mb-0">
+        Usuario: {{ equipo['nombre_completo'] or 'Sin asignar' }} |
+        Serial: <code>{{ serial }}</code>
+    </p>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        {% if current_user and current_user['role'] == 'admin' %}
+        <div class="mb-3">
+            <a href="{{ url_for('conformity.upload') }}" class="btn btn-primary btn-sm">Subir nueva acta</a>
+        </div>
+        {% endif %}
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Archivo</th>
+                        <th>Fecha subida</th>
+                        <th>Subido por</th>
+                        <th>Notas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                {% if record['tipo_archivo'] == 'PDF' %}
+                                <span class="badge bg-danger">PDF</span>
+                                {% else %}
+                                <span class="badge bg-info">MSG</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record['nombre_archivo'] }}</td>
+                            <td>{{ record['fecha_subida'][:16] if record['fecha_subida'] else '-' }}</td>
+                            <td>{{ record['subido_por'] or '-' }}</td>
+                            <td><small>{{ record['notas'] or '-' }}</small></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('conformity.view', id=record['id']) }}"
+                                       class="btn btn-outline-primary" target="_blank">Ver</a>
+                                    <a href="{{ url_for('conformity.download', id=record['id']) }}"
+                                       class="btn btn-outline-secondary">Descargar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No hay actas registradas para este equipo
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

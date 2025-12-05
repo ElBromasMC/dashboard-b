@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Actas de Conformidad - BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <h1 class="page-title text-brand mb-1">Actas de Conformidad</h1>
+        <p class="text-muted mb-0">Documentos de aceptaci&oacute;n de usuarios para el proyecto de upgrade.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if current_user and current_user['role'] == 'admin' %}
+        <a href="{{ url_for('conformity.upload') }}" class="btn btn-primary">Subir acta</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-primary">{{ summary.total }}</div>
+                <div class="small text-muted">Total de actas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-success">{{ summary.por_tipo.get('PDF', 0) }}</div>
+                <div class="small text-muted">Archivos PDF</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-3">
+                <div class="h3 mb-1 text-info">{{ summary.por_tipo.get('MSG', 0) }}</div>
+                <div class="small text-muted">Archivos MSG</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtro -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="equipo" class="form-label">Filtrar por serial de equipo</label>
+                <input type="text" class="form-control" id="equipo" name="equipo"
+                       value="{{ equipo_filter or '' }}" placeholder="Serial del equipo">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+            {% if equipo_filter %}
+            <div class="col-md-2">
+                <a href="{{ url_for('conformity.index') }}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Lista de actas -->
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Equipo</th>
+                        <th>Usuario</th>
+                        <th>Tipo</th>
+                        <th>Archivo</th>
+                        <th>Fecha subida</th>
+                        <th>Subido por</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                <code>{{ record['equipo_serial'] }}</code>
+                                {% if record['equipo_hostname'] %}
+                                <br><small class="text-muted">{{ record['equipo_hostname'] }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ record['usuario_nombre'] or record['nombre_completo'] or '-' }}</td>
+                            <td>
+                                {% if record['tipo_archivo'] == 'PDF' %}
+                                <span class="badge bg-danger">PDF</span>
+                                {% else %}
+                                <span class="badge bg-info">MSG</span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ record['nombre_archivo'] }}</small></td>
+                            <td><small>{{ record['fecha_subida'][:16] if record['fecha_subida'] else '-' }}</small></td>
+                            <td>{{ record['subido_por'] or '-' }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('conformity.view', id=record['id']) }}"
+                                       class="btn btn-outline-primary" target="_blank"
+                                       title="Ver archivo">Ver</a>
+                                    <a href="{{ url_for('conformity.download', id=record['id']) }}"
+                                       class="btn btn-outline-secondary" title="Descargar">Descargar</a>
+                                    {% if current_user and current_user['role'] == 'admin' %}
+                                    <form action="{{ url_for('conformity.delete', id=record['id']) }}"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('¿Eliminar este acta?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No hay actas de conformidad registradas
+                                {% if equipo_filter %}para este equipo{% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

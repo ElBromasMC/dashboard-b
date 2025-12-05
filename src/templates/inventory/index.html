@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario de Componentes - BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="page-title text-brand mb-1">Inventario de Componentes</h1>
+    <p class="text-muted mb-0">Gesti&oacute;n de memorias RAM y discos SSD para el proyecto de repotenciaci&oacute;n.</p>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 class="card-title h5 mb-1">Memorias RAM</h2>
+                        <p class="text-muted small mb-0">Unidades de memoria para repotenciaci&oacute;n</p>
+                    </div>
+                    <span class="badge bg-primary rounded-pill" id="ram-total">0</span>
+                </div>
+                <div class="inventory-summary mb-3" id="ram-summary">
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge" style="background-color: #6c757d;">Por entregar: <span id="ram-por-entregar">0</span></span>
+                        <span class="badge" style="background-color: #198754;">Instalado: <span id="ram-instalado">0</span></span>
+                        <span class="badge" style="background-color: #ffc107; color: #000;">Por asignar: <span id="ram-por-asignar">0</span></span>
+                        <span class="badge" style="background-color: #dc3545;">Defectuoso: <span id="ram-defectuoso">0</span></span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('inventory.ram_list') }}" class="btn btn-outline-primary">Ver listado</a>
+                    {% if current_user and current_user['role'] == 'admin' %}
+                    <a href="{{ url_for('inventory.ram_new') }}" class="btn btn-primary">Agregar RAM</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 class="card-title h5 mb-1">Discos SSD</h2>
+                        <p class="text-muted small mb-0">Unidades de almacenamiento s&oacute;lido</p>
+                    </div>
+                    <span class="badge bg-primary rounded-pill" id="ssd-total">0</span>
+                </div>
+                <div class="inventory-summary mb-3" id="ssd-summary">
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge" style="background-color: #6c757d;">Por entregar: <span id="ssd-por-entregar">0</span></span>
+                        <span class="badge" style="background-color: #198754;">Instalado: <span id="ssd-instalado">0</span></span>
+                        <span class="badge" style="background-color: #ffc107; color: #000;">Por asignar: <span id="ssd-por-asignar">0</span></span>
+                        <span class="badge" style="background-color: #dc3545;">Defectuoso: <span id="ssd-defectuoso">0</span></span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('inventory.ssd_list') }}" class="btn btn-outline-primary">Ver listado</a>
+                    {% if current_user and current_user['role'] == 'admin' %}
+                    <a href="{{ url_for('inventory.ssd_new') }}" class="btn btn-primary">Agregar SSD</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">Distribuci&oacute;n de RAM por estado</h2>
+                <canvas id="ramChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">Distribuci&oacute;n de SSD por estado</h2>
+                <canvas id="ssdChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="card-title h5 mb-0">Historial reciente</h2>
+                    <a href="{{ url_for('inventory.history') }}" class="btn btn-sm btn-outline-primary">Ver todo</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="history-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Componente</th>
+                                <th>Serial</th>
+                                <th>Acci&oacute;n</th>
+                                <th>Equipo</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Sin movimientos recientes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+const statusColors = {
+    'POR_ENTREGAR': '#6c757d',
+    'INSTALADO': '#198754',
+    'POR_ASIGNAR': '#ffc107',
+    'DEFECTUOSO': '#dc3545'
+};
+
+const statusLabels = {
+    'POR_ENTREGAR': 'Por entregar',
+    'INSTALADO': 'Instalado',
+    'POR_ASIGNAR': 'Por asignar',
+    'DEFECTUOSO': 'Defectuoso'
+};
+
+let ramChart, ssdChart;
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchInventorySummary();
+});
+
+async function fetchInventorySummary() {
+    try {
+        const response = await fetch('/inventario/api/summary');
+        const data = await response.json();
+        renderSummary(data);
+        renderCharts(data);
+    } catch (err) {
+        console.error('Error cargando resumen:', err);
+    }
+}
+
+function renderSummary(data) {
+    // RAM
+    document.getElementById('ram-total').textContent = data.ram.total || 0;
+    document.getElementById('ram-por-entregar').textContent = data.ram.por_estado.POR_ENTREGAR?.count || 0;
+    document.getElementById('ram-instalado').textContent = data.ram.por_estado.INSTALADO?.count || 0;
+    document.getElementById('ram-por-asignar').textContent = data.ram.por_estado.POR_ASIGNAR?.count || 0;
+    document.getElementById('ram-defectuoso').textContent = data.ram.por_estado.DEFECTUOSO?.count || 0;
+
+    // SSD
+    document.getElementById('ssd-total').textContent = data.ssd.total || 0;
+    document.getElementById('ssd-por-entregar').textContent = data.ssd.por_estado.POR_ENTREGAR?.count || 0;
+    document.getElementById('ssd-instalado').textContent = data.ssd.por_estado.INSTALADO?.count || 0;
+    document.getElementById('ssd-por-asignar').textContent = data.ssd.por_estado.POR_ASIGNAR?.count || 0;
+    document.getElementById('ssd-defectuoso').textContent = data.ssd.por_estado.DEFECTUOSO?.count || 0;
+}
+
+function renderCharts(data) {
+    const labels = Object.keys(statusLabels).map(k => statusLabels[k]);
+    const colors = Object.keys(statusColors).map(k => statusColors[k]);
+
+    // RAM Chart
+    const ramData = Object.keys(statusLabels).map(k => data.ram.por_estado[k]?.count || 0);
+    const ramCtx = document.getElementById('ramChart');
+    if (ramChart) ramChart.destroy();
+    ramChart = new Chart(ramCtx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: ramData,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // SSD Chart
+    const ssdData = Object.keys(statusLabels).map(k => data.ssd.por_estado[k]?.count || 0);
+    const ssdCtx = document.getElementById('ssdChart');
+    if (ssdChart) ssdChart.destroy();
+    ssdChart = new Chart(ssdCtx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: ssdData,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

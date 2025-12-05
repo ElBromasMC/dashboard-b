@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}Destrucci&oacute;n de Discos - BanBif{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title text-brand mb-0">Panel de Destrucci&oacute;n de Discos</h1>
+    {% if current_user and current_user['role'] == 'admin' %}
+    <a href="{{ url_for('destruction.create') }}" class="btn btn-primary">
+        Registrar disco
+    </a>
+    {% endif %}
+</div>
+
+<!-- Resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-primary">{{ summary.total }}</h3>
+                <small class="text-muted">Total registros</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c757d !important;">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-secondary">{{ summary.por_estado.get('PENDIENTE', 0) }}</h3>
+                <small class="text-muted">Pendientes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0dcaf0 !important;">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-info">{{ summary.por_estado.get('PROGRAMADO', 0) }}</h3>
+                <small class="text-muted">Programados</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-warning">{{ summary.por_estado.get('EN_PROCESO', 0) }}</h3>
+                <small class="text-muted">En proceso</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #198754 !important;">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-success">{{ summary.destruidos }}</h3>
+                <small class="text-muted">Destruidos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0d6efd !important;">
+            <div class="card-body text-center">
+                <h3 class="mb-1 text-primary">{{ summary.certificados }}</h3>
+                <small class="text-muted">Certificados</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info adicional -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="alert alert-info mb-0">
+            <strong>{{ summary.con_video }}</strong> discos tienen video de evidencia
+        </div>
+    </div>
+    <div class="col-md-6">
+        <form class="d-flex gap-2">
+            <select name="estado" class="form-select" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                {% for key, label in status_options.items() %}
+                <option value="{{ key }}" {{ 'selected' if estado_filter == key else '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if estado_filter %}
+            <a href="{{ url_for('destruction.index') }}" class="btn btn-outline-secondary">Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de registros -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        {% if records %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Serial del disco</th>
+                        <th>Marca / Modelo</th>
+                        <th>Capacidad</th>
+                        <th>Equipo origen</th>
+                        <th>Estado</th>
+                        <th>Fecha destrucci&oacute;n</th>
+                        <th>Video</th>
+                        <th>Certificado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>
+                            <code>{{ record['disco_serial'] }}</code>
+                        </td>
+                        <td>
+                            {{ record['disco_marca'] or '-' }}
+                            {% if record['disco_modelo'] %}
+                            <br><small class="text-muted">{{ record['disco_modelo'] }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record['disco_capacidad_gb'] %}
+                            {{ record['disco_capacidad_gb'] }} GB
+                            <small class="text-muted">{{ record['disco_tipo'] or 'HDD' }}</small>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record['equipo_origen_hostname'] or record['hostname_actual'] %}
+                            {{ record['equipo_origen_hostname'] or record['hostname_actual'] }}
+                            {% if record['nombre_completo'] %}
+                            <br><small class="text-muted">{{ record['nombre_completo'] }}</small>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set estado_colors = {
+                                'PENDIENTE': 'secondary',
+                                'PROGRAMADO': 'info',
+                                'EN_PROCESO': 'warning',
+                                'DESTRUIDO': 'success',
+                                'CERTIFICADO': 'primary'
+                            } %}
+                            <span class="badge bg-{{ estado_colors.get(record['estado'], 'secondary') }}">
+                                {{ status_options.get(record['estado'], record['estado']) }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ record['fecha_destruccion'][:10] if record['fecha_destruccion'] else '-' }}
+                            {% if record['metodo_destruccion'] %}
+                            <br><small class="text-muted">{{ record['metodo_destruccion'] }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if record['video_ruta'] %}
+                            <a href="{{ url_for('destruction.view_video', id=record['id']) }}"
+                               class="btn btn-sm btn-outline-success" target="_blank" title="Ver video">
+                                Ver
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record['certificado_numero'] %}
+                            <span class="badge bg-primary">{{ record['certificado_numero'] }}</span>
+                            <br><small class="text-muted">{{ record['certificado_fecha'] }}</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                {% if current_user and current_user['role'] == 'admin' %}
+                                <a href="{{ url_for('destruction.edit', id=record['id']) }}"
+                                   class="btn btn-outline-primary" title="Editar">
+                                    Editar
+                                </a>
+                                {% if record['estado'] == 'DESTRUIDO' and not record['certificado_numero'] %}
+                                <button type="button" class="btn btn-outline-success"
+                                        data-bs-toggle="modal" data-bs-target="#certifyModal{{ record['id'] }}"
+                                        title="Certificar">
+                                    Certificar
+                                </button>
+                                {% endif %}
+                                <form action="{{ url_for('destruction.delete', id=record['id']) }}"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('&iquest;Eliminar este registro?');">
+                                    <button type="submit" class="btn btn-outline-danger" title="Eliminar">
+                                        Eliminar
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Modal de certificaci&oacute;n -->
+                    {% if current_user and current_user['role'] == 'admin' and record['estado'] == 'DESTRUIDO' %}
+                    <div class="modal fade" id="certifyModal{{ record['id'] }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ url_for('destruction.certify', id=record['id']) }}" method="post">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Certificar destrucci&oacute;n</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Disco: <strong>{{ record['disco_serial'] }}</strong></p>
+                                        <div class="mb-3">
+                                            <label class="form-label">N&uacute;mero de certificado</label>
+                                            <input type="text" name="certificado_numero" class="form-control"
+                                                   placeholder="Ej: CERT-00001">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Fecha de certificaci&oacute;n</label>
+                                            <input type="date" name="certificado_fecha" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-success">Certificar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">No hay registros de destrucci&oacute;n de discos</p>
+            {% if current_user and current_user['role'] == 'admin' %}
+            <a href="{{ url_for('destruction.create') }}" class="btn btn-primary">
+                Registrar primer disco
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

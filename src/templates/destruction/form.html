@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Editar' if editing else 'Registrar' }} Disco para Destrucci&oacute;n - BanBif{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('destruction.index') }}">Destrucci&oacute;n</a></li>
+                <li class="breadcrumb-item active">{{ 'Editar' if editing else 'Nuevo registro' }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4 text-brand">
+                    {{ 'Editar registro de destrucción' if editing else 'Registrar disco para destrucción' }}
+                </h1>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    <!-- Datos del disco -->
+                    <h5 class="text-muted mb-3">Datos del disco</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="disco_serial" class="form-label">Serial del disco *</label>
+                            {% if editing %}
+                            <input type="text" class="form-control" value="{{ data.get('disco_serial', '') }}" readonly>
+                            {% else %}
+                            <input type="text" class="form-control" id="disco_serial" name="disco_serial"
+                                   value="{{ data.get('disco_serial', '') }}" required>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="disco_marca" class="form-label">Marca</label>
+                            <input type="text" class="form-control" id="disco_marca" name="disco_marca"
+                                   value="{{ data.get('disco_marca', '') }}" placeholder="Ej: Seagate, WD">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="disco_modelo" class="form-label">Modelo</label>
+                            <input type="text" class="form-control" id="disco_modelo" name="disco_modelo"
+                                   value="{{ data.get('disco_modelo', '') }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="disco_capacidad_gb" class="form-label">Capacidad (GB)</label>
+                            <input type="number" class="form-control" id="disco_capacidad_gb" name="disco_capacidad_gb"
+                                   value="{{ data.get('disco_capacidad_gb', '') }}" placeholder="500">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="disco_tipo" class="form-label">Tipo</label>
+                            <select class="form-select" id="disco_tipo" name="disco_tipo">
+                                <option value="">Seleccionar...</option>
+                                <option value="HDD" {{ 'selected' if data.get('disco_tipo') == 'HDD' else '' }}>HDD</option>
+                                <option value="SATA" {{ 'selected' if data.get('disco_tipo') == 'SATA' else '' }}>SATA</option>
+                                <option value="SSD" {{ 'selected' if data.get('disco_tipo') == 'SSD' else '' }}>SSD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="equipo_origen_serial" class="form-label">Serial equipo origen</label>
+                            <input type="text" class="form-control" id="equipo_origen_serial" name="equipo_origen_serial"
+                                   value="{{ data.get('equipo_origen_serial', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="equipo_origen_hostname" class="form-label">Hostname origen</label>
+                            <input type="text" class="form-control" id="equipo_origen_hostname" name="equipo_origen_hostname"
+                                   value="{{ data.get('equipo_origen_hostname', '') }}">
+                        </div>
+                    </div>
+
+                    <!-- Estado y fechas -->
+                    <h5 class="text-muted mb-3">Estado y fechas</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="estado" class="form-label">Estado *</label>
+                            <select class="form-select" id="estado" name="estado" required>
+                                {% for key, label in status_options.items() %}
+                                <option value="{{ key }}" {{ 'selected' if data.get('estado') == key else '' }}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_extraccion" class="form-label">Fecha extracci&oacute;n</label>
+                            <input type="date" class="form-control" id="fecha_extraccion" name="fecha_extraccion"
+                                   value="{{ data.get('fecha_extraccion', '')[:10] if data.get('fecha_extraccion') else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_destruccion" class="form-label">Fecha destrucci&oacute;n</label>
+                            <input type="date" class="form-control" id="fecha_destruccion" name="fecha_destruccion"
+                                   value="{{ data.get('fecha_destruccion', '')[:10] if data.get('fecha_destruccion') else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="metodo_destruccion" class="form-label">M&eacute;todo</label>
+                            <select class="form-select" id="metodo_destruccion" name="metodo_destruccion">
+                                <option value="">Seleccionar...</option>
+                                <option value="Trituradora" {{ 'selected' if data.get('metodo_destruccion') == 'Trituradora' else '' }}>Trituradora</option>
+                                <option value="Perforadora" {{ 'selected' if data.get('metodo_destruccion') == 'Perforadora' else '' }}>Perforadora</option>
+                                <option value="Degausser" {{ 'selected' if data.get('metodo_destruccion') == 'Degausser' else '' }}>Degausser</option>
+                                <option value="Incineracion" {{ 'selected' if data.get('metodo_destruccion') == 'Incineracion' else '' }}>Incineraci&oacute;n</option>
+                                <option value="Otro" {{ 'selected' if data.get('metodo_destruccion') == 'Otro' else '' }}>Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Video de evidencia -->
+                    {% if editing %}
+                    <h5 class="text-muted mb-3">Video de evidencia</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            {% if data.get('video_nombre') %}
+                            <div class="alert alert-success">
+                                <strong>Video actual:</strong> {{ data.get('video_nombre') }}
+                                <a href="{{ url_for('destruction.view_video', id=data.get('id')) }}"
+                                   target="_blank" class="ms-2">Ver video</a>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-secondary">
+                                No hay video de evidencia
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="video" class="form-label">
+                                {{ 'Reemplazar video' if data.get('video_nombre') else 'Subir video' }}
+                            </label>
+                            <input type="file" class="form-control" id="video" name="video"
+                                   accept=".mp4,.avi,.mov,.mkv,.webm">
+                            <div class="form-text">Formatos permitidos: MP4, AVI, MOV, MKV, WEBM</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Certificado (solo en edici&oacute;n) -->
+                    {% if editing %}
+                    <h5 class="text-muted mb-3">Certificado</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="certificado_numero" class="form-label">N&uacute;mero de certificado</label>
+                            <input type="text" class="form-control" id="certificado_numero" name="certificado_numero"
+                                   value="{{ data.get('certificado_numero', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="certificado_fecha" class="form-label">Fecha de certificado</label>
+                            <input type="date" class="form-control" id="certificado_fecha" name="certificado_fecha"
+                                   value="{{ data.get('certificado_fecha', '')[:10] if data.get('certificado_fecha') else '' }}">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Metadatos -->
+                    <h5 class="text-muted mb-3">Informaci&oacute;n adicional</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="responsable" class="form-label">Responsable</label>
+                            <input type="text" class="form-control" id="responsable" name="responsable"
+                                   value="{{ data.get('responsable', '') }}">
+                        </div>
+                        <div class="col-md-8">
+                            <label for="notas" class="form-label">Notas</label>
+                            <textarea class="form-control" id="notas" name="notas" rows="2">{{ data.get('notas', '') }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            {{ 'Guardar cambios' if editing else 'Registrar disco' }}
+                        </button>
+                        <a href="{{ url_for('destruction.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

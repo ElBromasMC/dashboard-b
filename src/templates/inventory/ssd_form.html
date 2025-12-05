@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Editar' if editing else 'Nuevo' }} SSD - Inventario BanBif{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('inventory.index') }}">Inventario</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('inventory.ssd_list') }}">Discos SSD</a></li>
+                <li class="breadcrumb-item active">{{ 'Editar' if editing else 'Nuevo' }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4 text-brand">{{ 'Editar disco SSD' if editing else 'Registrar nuevo disco SSD' }}</h1>
+
+                <form method="post" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="serial_num" class="form-label">N&uacute;mero de serie *</label>
+                            <input type="text" class="form-control" id="serial_num" name="serial_num"
+                                   value="{{ data.get('serial_num', '') }}" required {{ 'readonly' if editing else '' }}>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="marca" class="form-label">Marca</label>
+                            <input type="text" class="form-control" id="marca" name="marca"
+                                   value="{{ data.get('marca', '') }}" placeholder="Samsung, Kingston, etc.">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modelo" class="form-label">Modelo</label>
+                            <input type="text" class="form-control" id="modelo" name="modelo"
+                                   value="{{ data.get('modelo', '') }}" placeholder="870 EVO, A400, etc.">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="capacidad_gb" class="form-label">Capacidad (GB) *</label>
+                            <input type="number" class="form-control" id="capacidad_gb" name="capacidad_gb"
+                                   value="{{ data.get('capacidad_gb', '') }}" min="1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="tipo" class="form-label">Tipo</label>
+                            <select class="form-select" id="tipo" name="tipo">
+                                <option value="">Seleccionar...</option>
+                                <option value="SATA" {{ 'selected' if data.get('tipo') == 'SATA' else '' }}>SATA</option>
+                                <option value="NVMe" {{ 'selected' if data.get('tipo') == 'NVMe' else '' }}>NVMe</option>
+                                <option value="M.2 SATA" {{ 'selected' if data.get('tipo') == 'M.2 SATA' else '' }}>M.2 SATA</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado" name="estado">
+                                {% for key, label in status_options.items() %}
+                                <option value="{{ key }}" {{ 'selected' if data.get('estado', 'POR_ENTREGAR') == key else '' }}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if editing %}
+                        <div class="col-md-6">
+                            <label for="equipo_serial" class="form-label">Equipo asignado</label>
+                            <input type="text" class="form-control" id="equipo_serial" name="equipo_serial"
+                                   value="{{ data.get('equipo_serial', '') }}" placeholder="Serial del equipo">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fecha_instalacion" class="form-label">Fecha de instalaci&oacute;n</label>
+                            <input type="date" class="form-control" id="fecha_instalacion" name="fecha_instalacion"
+                                   value="{{ data.get('fecha_instalacion', '')[:10] if data.get('fecha_instalacion') else '' }}">
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <label for="notas" class="form-label">Notas</label>
+                            <textarea class="form-control" id="notas" name="notas" rows="2">{{ data.get('notas', '') }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">{{ 'Guardar cambios' if editing else 'Registrar SSD' }}</button>
+                        <a href="{{ url_for('inventory.ssd_list') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

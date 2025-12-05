@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Componentes - BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('inventory.index') }}">Inventario</a></li>
+            <li class="breadcrumb-item active">Historial</li>
+        </ol>
+    </nav>
+    <h1 class="page-title text-brand mb-0">Historial de movimientos</h1>
+    <p class="text-muted">Registro de instalaciones, desinstalaciones y cambios de estado de componentes.</p>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="equipo" class="form-label">Filtrar por equipo</label>
+                <input type="text" class="form-control" id="equipo" name="equipo"
+                       value="{{ equipo_filter or '' }}" placeholder="Serial del equipo">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+            {% if equipo_filter %}
+            <div class="col-md-2">
+                <a href="{{ url_for('inventory.history') }}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Serial componente</th>
+                        <th>Acci&oacute;n</th>
+                        <th>Estado anterior</th>
+                        <th>Estado nuevo</th>
+                        <th>Equipo anterior</th>
+                        <th>Equipo nuevo</th>
+                        <th>Usuario</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if movements %}
+                        {% for mov in movements %}
+                        <tr>
+                            <td class="small">{{ mov['fecha'][:16] if mov['fecha'] else '-' }}</td>
+                            <td><span class="badge bg-secondary">{{ mov['tipo_componente'] }}</span></td>
+                            <td><code>{{ mov['componente_serial'] }}</code></td>
+                            <td>
+                                {% if mov['accion'] == 'INSTALACION' %}
+                                <span class="badge bg-success">Instalaci&oacute;n</span>
+                                {% elif mov['accion'] == 'DESINSTALACION' %}
+                                <span class="badge bg-warning text-dark">Desinstalaci&oacute;n</span>
+                                {% else %}
+                                <span class="badge bg-info">{{ mov['accion'] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ mov['estado_anterior'] or '-' }}</td>
+                            <td>{{ mov['estado_nuevo'] or '-' }}</td>
+                            <td>{{ mov['equipo_serial_anterior'] or '-' }}</td>
+                            <td>{{ mov['equipo_serial_nuevo'] or '-' }}</td>
+                            <td>{{ mov['usuario'] or '-' }}</td>
+                            <td class="small">{{ mov['notas'] or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">
+                                No hay movimientos registrados
+                                {% if equipo_filter %}para este equipo{% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

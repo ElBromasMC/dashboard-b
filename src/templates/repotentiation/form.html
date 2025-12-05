@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Editar' if editing else 'Nueva' }} Repotenciaci&oacute;n - BanBif{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('repotentiation.index') }}">Repotenciaci&oacute;n</a></li>
+                <li class="breadcrumb-item active">{{ 'Editar' if editing else 'Nuevo registro' }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4 text-brand">{{ 'Editar registro' if editing else 'Registrar nueva repotenciación' }}</h1>
+
+                <form method="post" novalidate>
+                    <!-- Datos del equipo -->
+                    <h5 class="text-muted mb-3">Equipo</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="equipo_serial" class="form-label">Equipo *</label>
+                            {% if editing %}
+                            <input type="text" class="form-control" value="{{ data.get('equipo_serial', '') }}" readonly>
+                            <input type="hidden" name="equipo_serial" value="{{ data.get('equipo_serial', '') }}">
+                            {% else %}
+                            <select class="form-select" id="equipo_serial" name="equipo_serial" required>
+                                <option value="">Seleccionar equipo...</option>
+                                {% for equipo in equipos %}
+                                <option value="{{ equipo['serial_num'] }}"
+                                        data-hostname="{{ equipo['hostname'] }}"
+                                        {{ 'selected' if data.get('equipo_serial') == equipo['serial_num'] else '' }}>
+                                    {{ equipo['hostname'] or equipo['serial_num'] }}
+                                    {% if equipo['nombre_completo'] %} - {{ equipo['nombre_completo'] }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="equipo_hostname" class="form-label">Hostname</label>
+                            <input type="text" class="form-control" id="equipo_hostname" name="equipo_hostname"
+                                   value="{{ data.get('equipo_hostname', '') }}" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_repotenciacion" class="form-label">Fecha *</label>
+                            <input type="date" class="form-control" id="fecha_repotenciacion" name="fecha_repotenciacion"
+                                   value="{{ data.get('fecha_repotenciacion', '')[:10] if data.get('fecha_repotenciacion') else '' }}" required>
+                        </div>
+                    </div>
+
+                    <!-- RAM -->
+                    <h5 class="text-muted mb-3">Memoria RAM</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-3 text-muted">Antes</h6>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label small">Capacidad</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" name="ram_antes_gb"
+                                                       value="{{ data.get('ram_antes_gb', '') }}">
+                                                <span class="input-group-text">GB</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Tipo</label>
+                                            <select class="form-select form-select-sm" name="ram_antes_tipo">
+                                                <option value="">-</option>
+                                                <option value="DDR3" {{ 'selected' if data.get('ram_antes_tipo') == 'DDR3' else '' }}>DDR3</option>
+                                                <option value="DDR4" {{ 'selected' if data.get('ram_antes_tipo') == 'DDR4' else '' }}>DDR4</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Serial</label>
+                                            <input type="text" class="form-control form-control-sm" name="ram_antes_serial"
+                                                   value="{{ data.get('ram_antes_serial', '') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-success-subtle">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-3 text-success">Despu&eacute;s</h6>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label small">Capacidad</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" name="ram_despues_gb"
+                                                       value="{{ data.get('ram_despues_gb', '') }}">
+                                                <span class="input-group-text">GB</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Tipo</label>
+                                            <select class="form-select form-select-sm" name="ram_despues_tipo">
+                                                <option value="">-</option>
+                                                <option value="DDR3" {{ 'selected' if data.get('ram_despues_tipo') == 'DDR3' else '' }}>DDR3</option>
+                                                <option value="DDR4" {{ 'selected' if data.get('ram_despues_tipo') == 'DDR4' else '' }}>DDR4</option>
+                                                <option value="DDR5" {{ 'selected' if data.get('ram_despues_tipo') == 'DDR5' else '' }}>DDR5</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Serial</label>
+                                            <input type="text" class="form-control form-control-sm" name="ram_despues_serial"
+                                                   value="{{ data.get('ram_despues_serial', '') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disco -->
+                    <h5 class="text-muted mb-3">Disco</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-3 text-muted">Antes (HDD)</h6>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label small">Capacidad</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" name="disco_antes_capacidad_gb"
+                                                       value="{{ data.get('disco_antes_capacidad_gb', '') }}">
+                                                <span class="input-group-text">GB</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Tipo</label>
+                                            <select class="form-select form-select-sm" name="disco_antes_tipo">
+                                                <option value="HDD" {{ 'selected' if data.get('disco_antes_tipo') == 'HDD' else '' }}>HDD</option>
+                                                <option value="SATA" {{ 'selected' if data.get('disco_antes_tipo') == 'SATA' else '' }}>SATA</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Serial</label>
+                                            <input type="text" class="form-control form-control-sm" name="disco_antes_serial"
+                                                   value="{{ data.get('disco_antes_serial', '') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-success-subtle">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-3 text-success">Despu&eacute;s (SSD)</h6>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="form-label small">Capacidad</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" name="disco_despues_capacidad_gb"
+                                                       value="{{ data.get('disco_despues_capacidad_gb', '') }}">
+                                                <span class="input-group-text">GB</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Tipo</label>
+                                            <select class="form-select form-select-sm" name="disco_despues_tipo">
+                                                <option value="SSD" {{ 'selected' if data.get('disco_despues_tipo') == 'SSD' else '' }}>SSD</option>
+                                                <option value="NVMe" {{ 'selected' if data.get('disco_despues_tipo') == 'NVMe' else '' }}>NVMe</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small">Serial</label>
+                                            <input type="text" class="form-control form-control-sm" name="disco_despues_serial"
+                                                   value="{{ data.get('disco_despues_serial', '') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Componentes extra&iacute;dos -->
+                    <h5 class="text-muted mb-3">Componentes extra&iacute;dos</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">RAM extra&iacute;da</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="text" class="form-control form-control-sm" name="ram_extraida_serial"
+                                           placeholder="Serial" value="{{ data.get('ram_extraida_serial', '') }}">
+                                </div>
+                                <div class="col-6">
+                                    <select class="form-select form-select-sm" name="ram_extraida_estado">
+                                        <option value="">Estado</option>
+                                        <option value="FUNCIONAL" {{ 'selected' if data.get('ram_extraida_estado') == 'FUNCIONAL' else '' }}>Funcional</option>
+                                        <option value="DEFECTUOSA" {{ 'selected' if data.get('ram_extraida_estado') == 'DEFECTUOSA' else '' }}>Defectuosa</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Disco extra&iacute;do</label>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <input type="text" class="form-control form-control-sm" name="disco_extraido_serial"
+                                           placeholder="Serial" value="{{ data.get('disco_extraido_serial', '') }}">
+                                </div>
+                                <div class="col-4">
+                                    <select class="form-select form-select-sm" name="disco_extraido_estado">
+                                        <option value="">Estado</option>
+                                        <option value="PENDIENTE" {{ 'selected' if data.get('disco_extraido_estado') == 'PENDIENTE' else '' }}>Pendiente</option>
+                                        <option value="DESTRUIDO" {{ 'selected' if data.get('disco_extraido_estado') == 'DESTRUIDO' else '' }}>Destruido</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="disco_extraido_destruido"
+                                               id="disco_extraido_destruido" {{ 'checked' if data.get('disco_extraido_destruido') else '' }}>
+                                        <label class="form-check-label small" for="disco_extraido_destruido">Destruido</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metadatos -->
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="tecnico" class="form-label">T&eacute;cnico</label>
+                            <input type="text" class="form-control" id="tecnico" name="tecnico"
+                                   value="{{ data.get('tecnico', '') }}">
+                        </div>
+                        <div class="col-md-8">
+                            <label for="notas" class="form-label">Notas</label>
+                            <textarea class="form-control" id="notas" name="notas" rows="2">{{ data.get('notas', '') }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">{{ 'Guardar cambios' if editing else 'Registrar' }}</button>
+                        <a href="{{ url_for('repotentiation.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not editing %}
+<script>
+document.getElementById('equipo_serial').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    document.getElementById('equipo_hostname').value = selected.dataset.hostname || '';
+});
+</script>
+{% endif %}
+{% endblock %}

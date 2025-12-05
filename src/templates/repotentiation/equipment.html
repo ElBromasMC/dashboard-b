@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de {{ equipo['hostname'] if equipo else serial }} - BanBif{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('repotentiation.index') }}">Repotenciaci&oacute;n</a></li>
+            <li class="breadcrumb-item active">{{ equipo['hostname'] if equipo else serial }}</li>
+        </ol>
+    </nav>
+    <h1 class="page-title text-brand mb-1">
+        Historial del equipo {{ equipo['hostname'] if equipo else serial }}
+    </h1>
+    {% if equipo %}
+    <p class="text-muted mb-0">
+        Usuario: {{ equipo['nombre_completo'] or 'Sin asignar' }} |
+        Serial: <code>{{ serial }}</code>
+    </p>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        {% if current_user and current_user['role'] == 'admin' %}
+        <div class="mb-3">
+            <a href="{{ url_for('repotentiation.create') }}" class="btn btn-primary btn-sm">Registrar repotenciaci&oacute;n</a>
+        </div>
+        {% endif %}
+
+        {% if records %}
+        {% for record in records %}
+        <div class="card mb-3 border">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <span><strong>{{ record['fecha_repotenciacion'][:10] if record['fecha_repotenciacion'] else 'Sin fecha' }}</strong></span>
+                <span class="badge bg-secondary">{{ record['tecnico'] or 'Sin t&eacute;cnico' }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Memoria RAM</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td class="text-muted">Antes:</td>
+                                <td>{{ record['ram_antes_gb'] or '-' }} GB {{ record['ram_antes_tipo'] or '' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Despu&eacute;s:</td>
+                                <td class="text-success">{{ record['ram_despues_gb'] or '-' }} GB {{ record['ram_despues_tipo'] or '' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Disco</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td class="text-muted">Antes:</td>
+                                <td>{{ record['disco_antes_capacidad_gb'] or '-' }} GB {{ record['disco_antes_tipo'] or 'HDD' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Despu&eacute;s:</td>
+                                <td class="text-success">{{ record['disco_despues_capacidad_gb'] or '-' }} GB {{ record['disco_despues_tipo'] or 'SSD' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                {% if record['notas'] %}
+                <p class="small text-muted mb-0"><strong>Notas:</strong> {{ record['notas'] }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-center text-muted py-4">No hay registros de repotenciaci&oacute;n para este equipo</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
