@@ -41,7 +41,8 @@ WORKDIR /home/runner/src
 COPY --chown=runner:runner . .
 
 # Create required folders
-RUN mkdir -p /home/runner/src/data
+RUN mkdir -p /home/runner/src/data \
+    /home/runner/src/uploads
 
 # Expose required ports
 EXPOSE 5000

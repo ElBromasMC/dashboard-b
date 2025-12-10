@@ -19,6 +19,7 @@
 # Project specific
 **/.env
 /data
+/uploads
 **/CLAUDE.md
 **/.claude/
 
