@@ -2,7 +2,10 @@ from flask import Flask, jsonify
 
 from config import Config
 from models.database import close_db, init_db
-from controllers import auth_bp, dashboard_bp, admin_bp, inventory_bp, conformity_bp, repotentiation_bp, destruction_bp
+from controllers import (
+    auth_bp, dashboard_bp, admin_bp, inventory_bp, conformity_bp,
+    repotentiation_bp, destruction_bp, reports_bp, bulk_upload_bp
+)
 
 
 def create_app():
@@ -17,6 +20,8 @@ def create_app():
     app.register_blueprint(conformity_bp)
     app.register_blueprint(repotentiation_bp)
     app.register_blueprint(destruction_bp)
+    app.register_blueprint(reports_bp)
+    app.register_blueprint(bulk_upload_bp)
 
     # Cerrar conexión de BD al terminar
     app.teardown_appcontext(close_db)
@@ -30,12 +35,12 @@ def create_app():
     @app.route("/upload", methods=["GET", "POST"])
     def upload_redirect():
         from flask import redirect, url_for
-        return redirect(url_for("admin.upload"), code=307)
+        return redirect(url_for("bulk_upload.upload_progress"), code=307)
 
     @app.route("/api/download-template")
     def download_template_redirect():
         from flask import redirect, url_for
-        return redirect(url_for("admin.download_template"))
+        return redirect(url_for("bulk_upload.download_progress_template"))
 
     return app
 

@@ -39,9 +39,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('destruction.index') }}">Destrucci&oacute;n</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('reports.index') }}">Reportes</a>
+                    </li>
                     {% if current_user['role'] == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.upload') }}">Cargar avances</a>
+                        <a class="nav-link" href="{{ url_for('bulk_upload.index') }}">Carga Masiva</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admin.new_user') }}">Nuevo usuario</a>

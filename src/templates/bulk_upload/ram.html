@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Cargar RAM - BanBif Upgrade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('bulk_upload.index') }}">Carga Masiva</a></li>
+                <li class="breadcrumb-item active">RAM</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                    <div>
+                        <h1 class="h4 mb-1 text-brand">Carga de Memorias RAM</h1>
+                        <p class="text-muted mb-0">Sube un archivo CSV con las unidades de memoria RAM.</p>
+                    </div>
+                    <a class="btn btn-outline-success" href="{{ url_for('bulk_upload.download_ram_template') }}">Descargar plantilla</a>
+                </div>
+                <form method="post" enctype="multipart/form-data" class="upload-form" novalidate>
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Archivo CSV</label>
+                        <input class="form-control" type="file" id="file" name="file" accept=".csv" required>
+                        <div class="form-text">El archivo debe incluir una columna <code>serial_num</code> &uacute;nica por unidad.</div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Procesar carga</button>
+                </form>
+                {% if summary %}
+                <div class="mt-4">
+                    <h2 class="h6 text-uppercase text-muted">Resumen de la carga</h2>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="status-card bg-success-subtle text-success-emphasis">
+                                <span class="label">Registros nuevos</span>
+                                <span class="value">{{ summary.inserted }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-card bg-info-subtle text-info-emphasis">
+                                <span class="label">Registros actualizados</span>
+                                <span class="value">{{ summary.updated }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-card bg-primary-subtle text-primary-emphasis">
+                                <span class="label">Total procesado</span>
+                                <span class="value">{{ summary.total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if summary.errors %}
+                    <div class="mt-3">
+                        <h3 class="h6 text-danger">Errores encontrados</h3>
+                        <ul class="list-unstyled small text-danger">
+                            {% for error in summary.errors[:10] %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                            {% if summary.errors|length > 10 %}
+                            <li>... y {{ summary.errors|length - 10 }} errores m&aacute;s</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Columnas aceptadas</h2>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Columna</th>
+                                <th>Requerido</th>
+                                <th>Descripci&oacute;n</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>serial_num</code></td>
+                                <td><span class="badge bg-danger">S&iacute;</span></td>
+                                <td>N&uacute;mero de serie &uacute;nico de la memoria</td>
+                            </tr>
+                            <tr>
+                                <td><code>marca</code></td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Fabricante (Kingston, Crucial, Samsung, etc.)</td>
+                            </tr>
+                            <tr>
+                                <td><code>capacidad_gb</code></td>
+                                <td><span class="badge bg-danger">S&iacute;</span></td>
+                                <td>Capacidad en GB (n&uacute;mero entero)</td>
+                            </tr>
+                            <tr>
+                                <td><code>tipo</code></td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>DDR3, DDR4, DDR5, etc.</td>
+                            </tr>
+                            <tr>
+                                <td><code>velocidad_mhz</code></td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Velocidad en MHz (2666, 3200, etc.)</td>
+                            </tr>
+                            <tr>
+                                <td><code>estado</code></td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Estado inicial (por defecto: POR_ENTREGAR)</td>
+                            </tr>
+                            <tr>
+                                <td><code>notas</code></td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Observaciones adicionales</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="h6 text-uppercase text-muted mt-4">Estados v&aacute;lidos</h2>
+                <div class="status-badges">
+                    {% for key, label in estados.items() %}
+                    <span class="badge bg-light text-success border border-success-subtle me-1 mb-1">{{ key }} ({{ label }})</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

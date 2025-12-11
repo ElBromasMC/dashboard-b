@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ table_name }} - Tablas - BanBif Upgrade{% endblock %}
+
+{% block head_extra %}
+<style>
+    .table-data {
+        font-size: 0.85rem;
+    }
+    .table-data th, .table-data td {
+        white-space: nowrap;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .table-data td:hover {
+        white-space: normal;
+        word-break: break-all;
+    }
+    .table-selector {
+        max-width: 250px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Reportes</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.raw_tables') }}">Tablas</a></li>
+                <li class="breadcrumb-item active">{{ table_name }}</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-1 text-brand">
+            <code>{{ table_name }}</code>
+        </h1>
+        <p class="text-muted mb-0">{{ total }} registro{{ 's' if total != 1 else '' }} en total</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <select class="form-select form-select-sm table-selector" onchange="window.location.href=this.value">
+            {% for t in valid_tables %}
+            <option value="{{ url_for('reports.view_table', table_name=t) }}" {{ 'selected' if t == table_name else '' }}>
+                {{ t }}
+            </option>
+            {% endfor %}
+        </select>
+        <a href="{{ url_for('reports.export_raw_table', table_name=table_name) }}" class="btn btn-outline-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            Exportar CSV
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-data mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        {% for col in columns %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                    {% for record in records %}
+                    <tr>
+                        {% for col in columns %}
+                        <td title="{{ record[col] if record[col] is not none else '' }}">
+                            {% if record[col] is none %}
+                            <span class="text-muted">NULL</span>
+                            {% elif record[col] == '' %}
+                            <span class="text-muted">(vac&iacute;o)</span>
+                            {% else %}
+                            {{ record[col] }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ columns|length }}" class="text-center text-muted py-4">
+                            No hay registros en esta tabla
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="card-footer bg-light">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Mostrando {{ (page - 1) * per_page + 1 }} - {{ [page * per_page, total]|min }} de {{ total }}
+            </div>
+            <nav aria-label="Paginacion">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('reports.view_table', table_name=table_name, page=1, per_page=per_page) }}">
+                            &laquo;
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('reports.view_table', table_name=table_name, page=page-1, per_page=per_page) }}">
+                            &lsaquo;
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% set start_page = [1, page - 2]|max %}
+                    {% set end_page = [total_pages, page + 2]|min %}
+
+                    {% for p in range(start_page, end_page + 1) %}
+                    <li class="page-item {{ 'active' if p == page else '' }}">
+                        <a class="page-link" href="{{ url_for('reports.view_table', table_name=table_name, page=p, per_page=per_page) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('reports.view_table', table_name=table_name, page=page+1, per_page=per_page) }}">
+                            &rsaquo;
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('reports.view_table', table_name=table_name, page=total_pages, per_page=per_page) }}">
+                            &raquo;
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="window.location.href='{{ url_for('reports.view_table', table_name=table_name, page=1) }}&per_page=' + this.value">
+                    <option value="25" {{ 'selected' if per_page == 25 else '' }}>25 por p&aacute;gina</option>
+                    <option value="50" {{ 'selected' if per_page == 50 else '' }}>50 por p&aacute;gina</option>
+                    <option value="100" {{ 'selected' if per_page == 100 else '' }}>100 por p&aacute;gina</option>
+                    <option value="200" {{ 'selected' if per_page == 200 else '' }}>200 por p&aacute;gina</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header">
+        <h6 class="mb-0">Columnas de <code>{{ table_name }}</code></h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for col in columns %}
+            <div class="col-md-4 col-lg-3 mb-2">
+                <code class="small">{{ col }}</code>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Cargar Repotenciaci&oacute;n - BanBif Upgrade{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('bulk_upload.index') }}">Carga Masiva</a></li>
+                <li class="breadcrumb-item active">Repotenciaci&oacute;n</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                    <div>
+                        <h1 class="h4 mb-1 text-brand">Carga de Repotenciaci&oacute;n</h1>
+                        <p class="text-muted mb-0">Sube un archivo CSV con el historial de repotenciaci&oacute;n de equipos.</p>
+                    </div>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('bulk_upload.download_repotentiation_template') }}" style="border-color: #6f42c1; color: #6f42c1;">Descargar plantilla</a>
+                </div>
+                <form method="post" enctype="multipart/form-data" class="upload-form" novalidate>
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Archivo CSV</label>
+                        <input class="form-control" type="file" id="file" name="file" accept=".csv" required>
+                        <div class="form-text">El archivo debe incluir <code>equipo_serial</code> y <code>fecha_repotenciacion</code>.</div>
+                    </div>
+                    <button type="submit" class="btn" style="background-color: #6f42c1; color: white;">Procesar carga</button>
+                </form>
+                {% if summary %}
+                <div class="mt-4">
+                    <h2 class="h6 text-uppercase text-muted">Resumen de la carga</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="status-card bg-success-subtle text-success-emphasis">
+                                <span class="label">Registros creados</span>
+                                <span class="value">{{ summary.inserted }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="status-card bg-primary-subtle text-primary-emphasis">
+                                <span class="label">Total procesado</span>
+                                <span class="value">{{ summary.total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if summary.errors %}
+                    <div class="mt-3">
+                        <h3 class="h6 text-danger">Errores encontrados</h3>
+                        <ul class="list-unstyled small text-danger">
+                            {% for error in summary.errors[:10] %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                            {% if summary.errors|length > 10 %}
+                            <li>... y {{ summary.errors|length - 10 }} errores m&aacute;s</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h2 class="h6 text-uppercase text-muted">Columnas aceptadas</h2>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Columna</th>
+                                <th>Requerido</th>
+                                <th>Descripci&oacute;n</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-warning">
+                                <td><code>equipo_serial</code></td>
+                                <td><span class="badge bg-danger">S&iacute;</span></td>
+                                <td>Serial del equipo intervenido</td>
+                            </tr>
+                            <tr>
+                                <td><code>equipo_hostname</code></td>
+                                <td><span class="badge bg-secondary">No</span></td>
+                                <td>Hostname del equipo</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><code>fecha_repotenciacion</code></td>
+                                <td><span class="badge bg-danger">S&iacute;</span></td>
+                                <td>Fecha de la intervenci&oacute;n (YYYY-MM-DD)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="h6 text-uppercase text-muted mt-4">RAM (Antes y Despu&eacute;s)</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-2"><strong>Antes:</strong></p>
+                        <ul class="list-unstyled small">
+                            <li><code>ram_antes_gb</code> - Capacidad anterior</li>
+                            <li><code>ram_antes_tipo</code> - Tipo (DDR3, DDR4)</li>
+                            <li><code>ram_antes_serial</code> - Serial de la RAM anterior</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-2"><strong>Despu&eacute;s:</strong></p>
+                        <ul class="list-unstyled small">
+                            <li><code>ram_despues_gb</code> - Capacidad nueva</li>
+                            <li><code>ram_despues_tipo</code> - Tipo nuevo</li>
+                            <li><code>ram_despues_serial</code> - Serial de la RAM nueva</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="h6 text-uppercase text-muted mt-4">Disco (Antes y Despu&eacute;s)</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-2"><strong>Antes (HDD):</strong></p>
+                        <ul class="list-unstyled small">
+                            <li><code>disco_antes_tipo</code> - HDD, SSHD, etc.</li>
+                            <li><code>disco_antes_capacidad_gb</code> - Capacidad</li>
+                            <li><code>disco_antes_serial</code> - Serial</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-2"><strong>Despu&eacute;s (SSD):</strong></p>
+                        <ul class="list-unstyled small">
+                            <li><code>disco_despues_tipo</code> - SSD, NVMe</li>
+                            <li><code>disco_despues_capacidad_gb</code> - Capacidad</li>
+                            <li><code>disco_despues_serial</code> - Serial</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="h6 text-uppercase text-muted mt-4">Componentes Extra&iacute;dos</h3>
+                <ul class="list-unstyled small">
+                    <li><code>ram_extraida_serial</code> - Serial de la RAM extra&iacute;da</li>
+                    <li><code>ram_extraida_estado</code> - Estado (FUNCIONAL, DEFECTUOSA)</li>
+                    <li><code>disco_extraido_serial</code> - Serial del disco extra&iacute;do</li>
+                    <li><code>disco_extraido_estado</code> - Estado</li>
+                    <li><code>disco_extraido_destruido</code> - SI/NO si fue destruido</li>
+                </ul>
+
+                <h3 class="h6 text-uppercase text-muted mt-4">Metadatos</h3>
+                <ul class="list-unstyled small">
+                    <li><code>tecnico</code> - Nombre del t&eacute;cnico</li>
+                    <li><code>notas</code> - Observaciones</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

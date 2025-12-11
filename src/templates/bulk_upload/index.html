@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Carga Masiva - BanBif Upgrade{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-1 text-brand">Carga Masiva</h1>
+        <p class="text-muted mb-0">Importa datos en lote desde archivos CSV</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Avances del Proyecto -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Avances del Proyecto</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Carga el estado diario consolidado de equipos y usuarios del proyecto de upgrade.</p>
+                <ul class="list-unstyled small text-muted mb-3">
+                    <li>Registros de equipos y usuarios</li>
+                    <li>Estados de coordinaci&oacute;n y upgrade</li>
+                    <li>Fechas programadas y de ejecuci&oacute;n</li>
+                </ul>
+                <a href="{{ url_for('bulk_upload.upload_progress') }}" class="btn btn-primary w-100">
+                    Cargar Avances
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- RAM -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Inventario RAM</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Carga unidades de memoria RAM al inventario del proyecto.</p>
+                <ul class="list-unstyled small text-muted mb-3">
+                    <li>Serial, marca, capacidad</li>
+                    <li>Tipo (DDR3, DDR4, DDR5)</li>
+                    <li>Estado inicial de las unidades</li>
+                </ul>
+                <a href="{{ url_for('bulk_upload.upload_ram') }}" class="btn btn-success w-100">
+                    Cargar RAM
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SSD -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Inventario SSD</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Carga unidades de disco s&oacute;lido al inventario del proyecto.</p>
+                <ul class="list-unstyled small text-muted mb-3">
+                    <li>Serial, marca, modelo</li>
+                    <li>Capacidad y tipo</li>
+                    <li>Estado inicial de las unidades</li>
+                </ul>
+                <a href="{{ url_for('bulk_upload.upload_ssd') }}" class="btn btn-info w-100">
+                    Cargar SSD
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repotenciacion -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header" style="background-color: #6f42c1; color: white;">
+                <h5 class="mb-0">Repotenciaci&oacute;n</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Carga el historial de repotenciaci&oacute;n de equipos.</p>
+                <ul class="list-unstyled small text-muted mb-3">
+                    <li>Datos del equipo intervenido</li>
+                    <li>RAM y disco antes/despu&eacute;s</li>
+                    <li>Componentes extra&iacute;dos</li>
+                </ul>
+                <a href="{{ url_for('bulk_upload.upload_repotentiation') }}" class="btn w-100" style="background-color: #6f42c1; color: white;">
+                    Cargar Repotenciaci&oacute;n
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Destruccion -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Destrucci&oacute;n de Discos</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Carga registros de destrucci&oacute;n de discos mec&aacute;nicos.</p>
+                <ul class="list-unstyled small text-muted mb-3">
+                    <li>Datos del disco a destruir</li>
+                    <li>Equipo de origen</li>
+                    <li>Estado y certificaciones</li>
+                </ul>
+                <a href="{{ url_for('bulk_upload.upload_destruction') }}" class="btn btn-danger w-100">
+                    Cargar Destrucci&oacute;n
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

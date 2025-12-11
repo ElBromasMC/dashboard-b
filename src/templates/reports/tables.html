@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Tablas de Base de Datos - BanBif Upgrade{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Reportes</a></li>
+                <li class="breadcrumb-item active">Tablas</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-1 text-brand">Tablas de Base de Datos</h1>
+        <p class="text-muted mb-0">Vista de las tablas crudas en la base de datos SQLite</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for table in tables %}
+    <div class="col-lg-4 col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">
+                        <code>{{ table.name }}</code>
+                    </h5>
+                    <span class="badge bg-primary rounded-pill">{{ table.count }}</span>
+                </div>
+                <p class="text-muted small mb-3">{{ table.count }} registro{{ 's' if table.count != 1 else '' }}</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('reports.view_table', table_name=table.name) }}" class="btn btn-outline-primary btn-sm flex-fill">
+                        Ver datos
+                    </a>
+                    <a href="{{ url_for('reports.export_raw_table', table_name=table.name) }}" class="btn btn-outline-secondary btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Descripci&oacute;n de Tablas</h5>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tabla</th>
+                        <th>Descripci&oacute;n</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>users</code></td>
+                        <td>Usuarios del sistema (administradores y est&aacute;ndar)</td>
+                    </tr>
+                    <tr>
+                        <td><code>project_records</code></td>
+                        <td>Registros principales del proyecto de upgrade (equipos y usuarios)</td>
+                    </tr>
+                    <tr>
+                        <td><code>ram_units</code></td>
+                        <td>Inventario de memorias RAM</td>
+                    </tr>
+                    <tr>
+                        <td><code>ssd_units</code></td>
+                        <td>Inventario de discos s&oacute;lidos (SSD)</td>
+                    </tr>
+                    <tr>
+                        <td><code>component_history</code></td>
+                        <td>Historial de movimientos de componentes (RAM y SSD)</td>
+                    </tr>
+                    <tr>
+                        <td><code>conformity_records</code></td>
+                        <td>Registros de actas de conformidad subidas</td>
+                    </tr>
+                    <tr>
+                        <td><code>repotentiation_history</code></td>
+                        <td>Historial de repotenciaci&oacute;n de equipos</td>
+                    </tr>
+                    <tr>
+                        <td><code>disk_destructions</code></td>
+                        <td>Registros de destrucci&oacute;n de discos mec&aacute;nicos</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

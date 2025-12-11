@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Reportes - BanBif Upgrade{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-1 text-brand">Reportes</h1>
+        <p class="text-muted mb-0">Exporta datos y genera reportes del proyecto</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Dashboard Export -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Dashboard - Equipos</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Exporta los registros del dashboard de equipos con todos los filtros aplicados.</p>
+
+                <div class="row g-3 mb-3">
+                    {% for fase_key, fase_data in project_phases.items() %}
+                    <div class="col-md-4">
+                        <div class="border rounded p-2 text-center">
+                            <span class="badge" style="background-color: {{ fase_data.color }};">{{ fase_data.nombre.split(' - ')[0] }}</span>
+                            <div class="fw-bold mt-1">{{ phase_counts.get(fase_key, 0) }}</div>
+                            <small class="text-muted">equipos</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <form action="{{ url_for('reports.export_dashboard') }}" method="GET" class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small">Fase</label>
+                        <select name="fase" class="form-select form-select-sm">
+                            <option value="">Todas las fases</option>
+                            {% for fase_key, fase_data in project_phases.items() %}
+                            <option value="{{ fase_key }}">{{ fase_data.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Estado</label>
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="REALIZADO">Realizado</option>
+                            <option value="EN PROCESO">En Proceso</option>
+                            <option value="PROGRAMADO">Programado</option>
+                            <option value="PENDIENTE">Pendiente</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-2" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Exportar Dashboard CSV
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- RAM Inventory -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Inventario RAM</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Exporta el inventario completo de memorias RAM.</p>
+
+                <div class="row g-2 mb-3">
+                    {% for estado_key, estado_label in component_status.items() %}
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="d-block text-truncate" title="{{ estado_label }}">{{ estado_label }}</small>
+                            <div class="fw-bold">{{ ram_summary.por_estado.get(estado_key, {}).get('count', 0) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <div class="border rounded p-2 flex-fill text-center">
+                        <small class="text-muted">Total unidades</small>
+                        <div class="fw-bold text-success">{{ ram_summary.total }}</div>
+                    </div>
+                    <div class="border rounded p-2 flex-fill text-center">
+                        <small class="text-muted">Total GB</small>
+                        <div class="fw-bold text-success">{{ ram_summary.total_gb }} GB</div>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('reports.export_ram') }}" method="GET" class="row g-2">
+                    <div class="col-md-8">
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos los estados</option>
+                            {% for estado_key, estado_label in component_status.items() %}
+                            <option value="{{ estado_key }}">{{ estado_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success w-100 btn-sm">Exportar CSV</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SSD Inventory -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Inventario SSD</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Exporta el inventario completo de discos s&oacute;lidos.</p>
+
+                <div class="row g-2 mb-3">
+                    {% for estado_key, estado_label in component_status.items() %}
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="d-block text-truncate" title="{{ estado_label }}">{{ estado_label }}</small>
+                            <div class="fw-bold">{{ ssd_summary.por_estado.get(estado_key, {}).get('count', 0) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <div class="border rounded p-2 flex-fill text-center">
+                        <small class="text-muted">Total unidades</small>
+                        <div class="fw-bold text-info">{{ ssd_summary.total }}</div>
+                    </div>
+                    <div class="border rounded p-2 flex-fill text-center">
+                        <small class="text-muted">Total GB</small>
+                        <div class="fw-bold text-info">{{ ssd_summary.total_gb }} GB</div>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('reports.export_ssd') }}" method="GET" class="row g-2">
+                    <div class="col-md-8">
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos los estados</option>
+                            {% for estado_key, estado_label in component_status.items() %}
+                            <option value="{{ estado_key }}">{{ estado_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-info w-100 btn-sm">Exportar CSV</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repotentiation -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header" style="background-color: #6f42c1; color: white;">
+                <h5 class="mb-0">Repotenciaci&oacute;n</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Exporta el historial completo de repotenciaci&oacute;n de equipos.</p>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Total</small>
+                            <div class="fw-bold" style="color: #6f42c1;">{{ repot_summary.total }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">RAM +GB</small>
+                            <div class="fw-bold text-success">{{ repot_summary.ram_agregada_gb }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">SSDs</small>
+                            <div class="fw-bold text-info">{{ repot_summary.ssd_instalados }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Destruidos</small>
+                            <div class="fw-bold text-danger">{{ repot_summary.discos_destruidos }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('reports.export_repotentiation') }}" class="btn w-100" style="background-color: #6f42c1; color: white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-2" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                    </svg>
+                    Exportar Repotenciaci&oacute;n CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Destruction -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Destrucci&oacute;n de Discos</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Exporta los registros de destrucci&oacute;n de discos.</p>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Total</small>
+                            <div class="fw-bold text-danger">{{ destruction_summary.total }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Destruidos</small>
+                            <div class="fw-bold text-success">{{ destruction_summary.destruidos }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Con Video</small>
+                            <div class="fw-bold text-info">{{ destruction_summary.con_video }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Certificados</small>
+                            <div class="fw-bold text-primary">{{ destruction_summary.certificados }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('reports.export_destruction') }}" method="GET" class="row g-2">
+                    <div class="col-md-8">
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos los estados</option>
+                            {% for estado_key, estado_label in destruction_status.items() %}
+                            <option value="{{ estado_key }}">{{ estado_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-danger w-100 btn-sm">Exportar CSV</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Component History -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Historial de Componentes</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Exporta el historial de movimientos de todos los componentes (RAM y SSD).</p>
+
+                <form action="{{ url_for('reports.export_component_history') }}" method="GET" class="row g-2">
+                    <div class="col-md-8">
+                        <label class="form-label small">L&iacute;mite de registros</label>
+                        <select name="limit" class="form-select form-select-sm">
+                            <option value="100">100 registros</option>
+                            <option value="500" selected>500 registros</option>
+                            <option value="1000">1,000 registros</option>
+                            <option value="5000">5,000 registros</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-secondary w-100">Exportar CSV</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raw Database Tables -->
+    {% if current_user and current_user['role'] == 'admin' %}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                        <path d="M4.318 2.687C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4c0-.374.356-.875 1.318-1.313ZM13 5.698V7c0 .374-.356.875-1.318 1.313C10.766 8.729 9.464 9 8 9s-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 5.698ZM14 4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13V4Zm-1 4.698V10c0 .374-.356.875-1.318 1.313C10.766 11.729 9.464 12 8 12s-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 8.698Zm0 3V13c0 .374-.356.875-1.318 1.313C10.766 14.729 9.464 15 8 15s-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13s3.022-.289 4.096-.777c.324-.147.633-.323.904-.525Z"/>
+                    </svg>
+                    Tablas de Base de Datos
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Acceso directo a las tablas crudas de la base de datos SQLite. Solo administradores.</p>
+                <ul class="list-unstyled small text-muted mb-3">
+                    <li>Ver todos los registros de cada tabla</li>
+                    <li>Exportar tablas completas a CSV</li>
+                    <li>Navegar con paginaci&oacute;n</li>
+                </ul>
+                <a href="{{ url_for('reports.raw_tables') }}" class="btn btn-dark w-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                        <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h13A1.5 1.5 0 0 1 16 1.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13zM1.5 1a.5.5 0 0 0-.5.5V5h4V1H1.5zM5 6H1v4h4V6zm1 4h4V6H6v4zm-1 1H1v3.5a.5.5 0 0 0 .5.5H5v-4zm1 0v4h4v-4H6zm5 0v4h3.5a.5.5 0 0 0 .5-.5V11h-4zm0-1h4V6h-4v4zm0-5h4V1.5a.5.5 0 0 0-.5-.5H11v4zm-1 0V1H6v4h4z"/>
+                    </svg>
+                    Ver Tablas
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
