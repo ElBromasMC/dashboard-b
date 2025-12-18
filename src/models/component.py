@@ -238,6 +238,13 @@ class RAMUnit:
 
         return summary
 
+    @staticmethod
+    def delete(db: sqlite3.Connection, id: int) -> bool:
+        """Elimina una unidad de RAM"""
+        db.execute("DELETE FROM ram_units WHERE id = ?", (id,))
+        db.commit()
+        return True
+
 
 class SSDUnit:
     """Modelo para unidades de disco sólido (SSD)"""
@@ -374,6 +381,13 @@ class SSDUnit:
             summary["total_gb"] += row["total_gb"] or 0
 
         return summary
+
+    @staticmethod
+    def delete(db: sqlite3.Connection, id: int) -> bool:
+        """Elimina una unidad de SSD"""
+        db.execute("DELETE FROM ssd_units WHERE id = ?", (id,))
+        db.commit()
+        return True
 
 
 class ComponentHistory:

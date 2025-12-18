@@ -95,6 +95,22 @@ def ram_edit(id):
     return render_template("inventory/ram_form.html", data=dict(ram), status_options=COMPONENT_STATUS, editing=True)
 
 
+@inventory_bp.route("/ram/<int:id>/eliminar", methods=["POST"])
+@login_required
+@admin_required
+def ram_delete(id):
+    """Eliminar RAM"""
+    db = get_db()
+    ram = RAMUnit.get_by_id(db, id)
+    if not ram:
+        flash("RAM no encontrada", "danger")
+        return redirect(url_for("inventory.ram_list"))
+
+    RAMUnit.delete(db, id)
+    flash(f"RAM {ram['serial_num']} eliminada correctamente", "success")
+    return redirect(url_for("inventory.ram_list"))
+
+
 @inventory_bp.route("/ssd")
 @login_required
 def ssd_list():
@@ -174,6 +190,22 @@ def ssd_edit(id):
         return redirect(url_for("inventory.ssd_list"))
 
     return render_template("inventory/ssd_form.html", data=dict(ssd), status_options=COMPONENT_STATUS, editing=True)
+
+
+@inventory_bp.route("/ssd/<int:id>/eliminar", methods=["POST"])
+@login_required
+@admin_required
+def ssd_delete(id):
+    """Eliminar SSD"""
+    db = get_db()
+    ssd = SSDUnit.get_by_id(db, id)
+    if not ssd:
+        flash("SSD no encontrado", "danger")
+        return redirect(url_for("inventory.ssd_list"))
+
+    SSDUnit.delete(db, id)
+    flash(f"SSD {ssd['serial_num']} eliminado correctamente", "success")
+    return redirect(url_for("inventory.ssd_list"))
 
 
 @inventory_bp.route("/historial")

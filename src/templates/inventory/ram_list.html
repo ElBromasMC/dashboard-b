@@ -81,7 +81,31 @@
                             <td>{{ ram['equipo_serial'] or '-' }}</td>
                             <td>
                                 {% if current_user and current_user['role'] == 'admin' %}
-                                <a href="{{ url_for('inventory.ram_edit', id=ram['id']) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('inventory.ram_edit', id=ram['id']) }}" class="btn btn-outline-primary">Editar</a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ ram['id'] }}">Eliminar</button>
+                                </div>
+                                <!-- Modal de confirmación -->
+                                <div class="modal fade" id="deleteModal{{ ram['id'] }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-sm">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar eliminaci&oacute;n</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>&iquest;Eliminar la RAM <strong>{{ ram['serial_num'] }}</strong>?</p>
+                                                <p class="text-muted small mb-0">Esta acci&oacute;n no se puede deshacer.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{{ url_for('inventory.ram_delete', id=ram['id']) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {% endif %}
                             </td>
                         </tr>
