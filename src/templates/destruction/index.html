@@ -66,9 +66,14 @@
 
 <!-- Info adicional -->
 <div class="row g-3 mb-4">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="alert alert-info mb-0">
             <strong>{{ summary.con_video }}</strong> discos tienen video de evidencia
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="alert alert-success mb-0">
+            <strong>{{ summary.con_informe }}</strong> con informe
         </div>
     </div>
     <div class="col-md-6">
@@ -96,11 +101,12 @@
                     <tr>
                         <th>Serial del disco</th>
                         <th>Marca / Modelo</th>
-                        <th>Capacidad</th>
+                        <th>Sede</th>
                         <th>Equipo origen</th>
                         <th>Estado</th>
                         <th>Fecha destrucci&oacute;n</th>
                         <th>Video</th>
+                        <th>Informe</th>
                         <th>Certificado</th>
                         <th class="text-end">Acciones</th>
                     </tr>
@@ -118,12 +124,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if record['disco_capacidad_gb'] %}
-                            {{ record['disco_capacidad_gb'] }} GB
-                            <small class="text-muted">{{ record['disco_tipo'] or 'HDD' }}</small>
-                            {% else %}
-                            -
-                            {% endif %}
+                            {{ record['sede'] or '-' }}
                         </td>
                         <td>
                             {% if record['equipo_origen_hostname'] or record['hostname_actual'] %}
@@ -154,10 +155,20 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% if record['video_ruta'] %}
-                            <a href="{{ url_for('destruction.view_video', id=record['id']) }}"
+                            {% if record['video_url'] %}
+                            <a href="{{ record['video_url'] }}"
                                class="btn btn-sm btn-outline-success" target="_blank" title="Ver video">
                                 Ver
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if record['informe_ruta'] %}
+                            <a href="{{ url_for('destruction.view_informe', id=record['id']) }}"
+                               class="btn btn-sm btn-outline-primary" target="_blank" title="Ver informe">
+                                PDF
                             </a>
                             {% else %}
                             <span class="text-muted">-</span>

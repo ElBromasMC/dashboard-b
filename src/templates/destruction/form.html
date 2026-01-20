@@ -59,11 +59,19 @@
                             </select>
                         </div>
                         <div class="col-md-3">
+                            <label for="sede" class="form-label">Sede</label>
+                            <input type="text" class="form-control" id="sede" name="sede"
+                                   value="{{ data.get('sede', '') }}" placeholder="Ej: Lima, Miraflores">
+                        </div>
+                        <div class="col-md-3">
                             <label for="equipo_origen_serial" class="form-label">Serial equipo origen</label>
                             <input type="text" class="form-control" id="equipo_origen_serial" name="equipo_origen_serial"
                                    value="{{ data.get('equipo_origen_serial', '') }}">
                         </div>
-                        <div class="col-md-3">
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
                             <label for="equipo_origen_hostname" class="form-label">Hostname origen</label>
                             <input type="text" class="form-control" id="equipo_origen_hostname" name="equipo_origen_hostname"
                                    value="{{ data.get('equipo_origen_hostname', '') }}">
@@ -106,30 +114,52 @@
                         </div>
                     </div>
 
-                    <!-- Video de evidencia -->
-                    {% if editing %}
+                    <!-- Video de evidencia (enlace) -->
                     <h5 class="text-muted mb-3">Video de evidencia</h5>
                     <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label for="video_url" class="form-label">Enlace al video</label>
+                            <input type="url" class="form-control" id="video_url" name="video_url"
+                                   value="{{ data.get('video_url', '') }}"
+                                   placeholder="https://drive.google.com/... o https://youtube.com/...">
+                            <div class="form-text">Ingrese el enlace al video de evidencia (Google Drive, YouTube, OneDrive, etc.)</div>
+                        </div>
+                        <div class="col-md-4">
+                            {% if data.get('video_url') %}
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <a href="{{ data.get('video_url') }}" target="_blank" class="btn btn-outline-success">
+                                    Ver video actual
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Informe de destrucci&oacute;n (PDF) -->
+                    {% if editing %}
+                    <h5 class="text-muted mb-3">Informe de destrucci&oacute;n</h5>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            {% if data.get('video_nombre') %}
+                            {% if data.get('informe_nombre') %}
                             <div class="alert alert-success">
-                                <strong>Video actual:</strong> {{ data.get('video_nombre') }}
-                                <a href="{{ url_for('destruction.view_video', id=data.get('id')) }}"
-                                   target="_blank" class="ms-2">Ver video</a>
+                                <strong>Informe actual:</strong> {{ data.get('informe_nombre') }}
+                                <a href="{{ url_for('destruction.view_informe', id=data.get('id')) }}"
+                                   target="_blank" class="ms-2">Ver PDF</a>
                             </div>
                             {% else %}
                             <div class="alert alert-secondary">
-                                No hay video de evidencia
+                                No hay informe de destrucci&oacute;n
                             </div>
                             {% endif %}
                         </div>
                         <div class="col-md-6">
-                            <label for="video" class="form-label">
-                                {{ 'Reemplazar video' if data.get('video_nombre') else 'Subir video' }}
+                            <label for="informe" class="form-label">
+                                {{ 'Reemplazar informe' if data.get('informe_nombre') else 'Subir informe' }}
                             </label>
-                            <input type="file" class="form-control" id="video" name="video"
-                                   accept=".mp4,.avi,.mov,.mkv,.webm">
-                            <div class="form-text">Formatos permitidos: MP4, AVI, MOV, MKV, WEBM</div>
+                            <input type="file" class="form-control" id="informe" name="informe"
+                                   accept=".pdf">
+                            <div class="form-text">Solo archivos PDF (m&aacute;x. 50MB)</div>
                         </div>
                     </div>
                     {% endif %}

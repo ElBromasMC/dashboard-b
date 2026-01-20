@@ -5,11 +5,11 @@ from datetime import datetime
 from pathlib import Path
 from config import BASE_DIR
 
-# Directorio para almacenar videos de destrucción
-VIDEOS_DIR = BASE_DIR / "uploads" / "destruccion"
-VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
+# Directorio para almacenar informes de destrucción (PDFs)
+INFORMES_DIR = BASE_DIR / "uploads" / "destruccion" / "informes"
+INFORMES_DIR.mkdir(parents=True, exist_ok=True)
 
-ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}
+ALLOWED_INFORME_EXTENSIONS = {'pdf'}
 
 # Estados de destrucción
 DESTRUCTION_STATUS = {
@@ -38,14 +38,17 @@ class DiskDestruction:
 
                 equipo_origen_serial TEXT,
                 equipo_origen_hostname TEXT,
+                sede TEXT,
 
                 estado TEXT NOT NULL DEFAULT 'PENDIENTE',
                 fecha_extraccion TEXT,
                 fecha_destruccion TEXT,
                 metodo_destruccion TEXT,
 
-                video_nombre TEXT,
-                video_ruta TEXT,
+                video_url TEXT,
+
+                informe_nombre TEXT,
+                informe_ruta TEXT,
 
                 certificado_numero TEXT,
                 certificado_fecha TEXT,
@@ -57,6 +60,28 @@ class DiskDestruction:
                 FOREIGN KEY (equipo_origen_serial) REFERENCES project_records(serial_num)
             )
         """)
+        db.commit()
+
+        # Migrar columnas si la tabla ya existe (para bases de datos existentes)
+        DiskDestruction._migrate_columns(db)
+
+    @staticmethod
+    def _migrate_columns(db: sqlite3.Connection) -> None:
+        """Agrega columnas nuevas si no existen (migración)"""
+        cursor = db.execute("PRAGMA table_info(disk_destructions)")
+        existing_columns = {row[1] for row in cursor.fetchall()}
+
+        migrations = [
+            ("sede", "TEXT"),
+            ("video_url", "TEXT"),
+            ("informe_nombre", "TEXT"),
+            ("informe_ruta", "TEXT"),
+        ]
+
+        for col_name, col_type in migrations:
+            if col_name not in existing_columns:
+                db.execute(f"ALTER TABLE disk_destructions ADD COLUMN {col_name} {col_type}")
+
         db.commit()
 
     @staticmethod
@@ -93,12 +118,13 @@ class DiskDestruction:
         cursor = db.execute("""
             INSERT INTO disk_destructions (
                 disco_serial, disco_marca, disco_modelo, disco_capacidad_gb, disco_tipo,
-                equipo_origen_serial, equipo_origen_hostname,
+                equipo_origen_serial, equipo_origen_hostname, sede,
                 estado, fecha_extraccion, fecha_destruccion, metodo_destruccion,
-                video_nombre, video_ruta,
+                video_url,
+                informe_nombre, informe_ruta,
                 certificado_numero, certificado_fecha,
                 responsable, notas
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data.get("disco_serial"),
             data.get("disco_marca"),
@@ -107,12 +133,14 @@ class DiskDestruction:
             data.get("disco_tipo"),
             data.get("equipo_origen_serial"),
             data.get("equipo_origen_hostname"),
+            data.get("sede"),
             data.get("estado", "PENDIENTE"),
             data.get("fecha_extraccion"),
             data.get("fecha_destruccion"),
             data.get("metodo_destruccion"),
-            data.get("video_nombre"),
-            data.get("video_ruta"),
+            data.get("video_url"),
+            data.get("informe_nombre"),
+            data.get("informe_ruta"),
             data.get("certificado_numero"),
             data.get("certificado_fecha"),
             data.get("responsable"),
@@ -126,8 +154,10 @@ class DiskDestruction:
         db.execute("""
             UPDATE disk_destructions SET
                 disco_marca = ?, disco_modelo = ?, disco_capacidad_gb = ?, disco_tipo = ?,
+                sede = ?,
                 estado = ?, fecha_extraccion = ?, fecha_destruccion = ?, metodo_destruccion = ?,
-                video_nombre = ?, video_ruta = ?,
+                video_url = ?,
+                informe_nombre = ?, informe_ruta = ?,
                 certificado_numero = ?, certificado_fecha = ?,
                 responsable = ?, notas = ?
             WHERE id = ?
@@ -136,12 +166,14 @@ class DiskDestruction:
             data.get("disco_modelo"),
             data.get("disco_capacidad_gb"),
             data.get("disco_tipo"),
+            data.get("sede"),
             data.get("estado"),
             data.get("fecha_extraccion"),
             data.get("fecha_destruccion"),
             data.get("metodo_destruccion"),
-            data.get("video_nombre"),
-            data.get("video_ruta"),
+            data.get("video_url"),
+            data.get("informe_nombre"),
+            data.get("informe_ruta"),
             data.get("certificado_numero"),
             data.get("certificado_fecha"),
             data.get("responsable"),
@@ -154,11 +186,11 @@ class DiskDestruction:
     @staticmethod
     def delete(db: sqlite3.Connection, id: int) -> bool:
         record = DiskDestruction.get_by_id(db, id)
-        if record and record["video_ruta"]:
+        if record and record["informe_ruta"]:
             try:
-                video_path = Path(record["video_ruta"])
-                if video_path.exists():
-                    video_path.unlink()
+                informe_path = Path(record["informe_ruta"])
+                if informe_path.exists():
+                    informe_path.unlink()
             except Exception:
                 pass
 
@@ -183,7 +215,12 @@ class DiskDestruction:
 
         con_video = db.execute("""
             SELECT COUNT(*) FROM disk_destructions
-            WHERE video_ruta IS NOT NULL AND video_ruta != ''
+            WHERE video_url IS NOT NULL AND video_url != ''
+        """).fetchone()[0]
+
+        con_informe = db.execute("""
+            SELECT COUNT(*) FROM disk_destructions
+            WHERE informe_ruta IS NOT NULL AND informe_ruta != ''
         """).fetchone()[0]
 
         certificados = db.execute("""
@@ -196,29 +233,30 @@ class DiskDestruction:
             "por_estado": {row["estado"]: row["count"] for row in by_status},
             "destruidos": destruidos,
             "con_video": con_video,
+            "con_informe": con_informe,
             "certificados": certificados,
         }
 
     @staticmethod
-    def allowed_video(filename: str) -> bool:
+    def allowed_informe(filename: str) -> bool:
         return '.' in filename and \
-               filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+               filename.rsplit('.', 1)[1].lower() in ALLOWED_INFORME_EXTENSIONS
 
     @staticmethod
-    def save_video(file, disco_serial: str) -> tuple:
-        """Guarda un video y retorna (nombre_seguro, ruta_completa)"""
+    def save_informe(file, disco_serial: str) -> tuple:
+        """Guarda un informe PDF y retorna (nombre_seguro, ruta_completa)"""
         if not file or not file.filename:
             return None, None
 
         filename = file.filename
-        if not DiskDestruction.allowed_video(filename):
+        if not DiskDestruction.allowed_informe(filename):
             return None, None
 
         ext = filename.rsplit('.', 1)[1].lower()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_filename = f"destruccion_{disco_serial}_{timestamp}.{ext}"
+        safe_filename = f"informe_{disco_serial}_{timestamp}.{ext}"
 
-        file_path = VIDEOS_DIR / safe_filename
+        file_path = INFORMES_DIR / safe_filename
         file.save(str(file_path))
 
         return safe_filename, str(file_path)
