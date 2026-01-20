@@ -162,12 +162,14 @@ def migrate_schema(db_path: Path, verbose: bool = True) -> dict:
                     disco_tipo TEXT,
                     equipo_origen_serial TEXT,
                     equipo_origen_hostname TEXT,
+                    sede TEXT,
                     estado TEXT NOT NULL DEFAULT 'PENDIENTE',
                     fecha_extraccion TEXT,
                     fecha_destruccion TEXT,
                     metodo_destruccion TEXT,
-                    video_nombre TEXT,
-                    video_ruta TEXT,
+                    video_url TEXT,
+                    informe_nombre TEXT,
+                    informe_ruta TEXT,
                     certificado_numero TEXT,
                     certificado_fecha TEXT,
                     responsable TEXT,
@@ -189,6 +191,26 @@ def migrate_schema(db_path: Path, verbose: bool = True) -> dict:
                 stats["tables_created"].append(table_name)
                 if verbose:
                     print(f"  [NEW] {table_name} creada")
+
+        # Migrar columnas nuevas en tablas existentes
+        column_migrations = {
+            "disk_destructions": [
+                ("sede", "TEXT"),
+                ("video_url", "TEXT"),
+                ("informe_nombre", "TEXT"),
+                ("informe_ruta", "TEXT"),
+            ]
+        }
+
+        for table_name, columns in column_migrations.items():
+            if table_name in existing:
+                cursor = conn.execute(f"PRAGMA table_info({table_name})")
+                existing_columns = {row[1] for row in cursor.fetchall()}
+                for col_name, col_type in columns:
+                    if col_name not in existing_columns:
+                        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}")
+                        if verbose:
+                            print(f"  [NEW] Columna {table_name}.{col_name} agregada")
 
         conn.commit()
         conn.close()
